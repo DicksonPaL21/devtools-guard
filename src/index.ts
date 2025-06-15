@@ -1,6 +1,16 @@
+/**
+ * 🛡️ devtools-guard
+ * A lightweight utility to detect if browser DevTools are open.
+ */
+
 export interface DetectorOptions {
+  /** Interval in milliseconds to check for DevTools (default: 1000) */
   interval?: number
+
+  /** Callback triggered when DevTools is opened */
   onOpen?: () => void
+
+  /** Callback triggered when DevTools is closed */
   onClose?: () => void
 }
 
@@ -13,18 +23,18 @@ export function startDevtoolsDetector(options: DetectorOptions = {}) {
     onClose = () => {},
   } = options
 
-  const threshold = 160
+  const threshold = 160 // devtools usually causes >160px diff in dimensions
 
   setInterval(() => {
-    const widthThreshold = window.outerWidth - window.innerWidth > threshold
-    const heightThreshold = window.outerHeight - window.innerHeight > threshold
+    const widthDiff = window.outerWidth - window.innerWidth
+    const heightDiff = window.outerHeight - window.innerHeight
 
-    const detected = widthThreshold || heightThreshold
+    const devtoolsDetected = widthDiff > threshold || heightDiff > threshold
 
-    if (detected && !isOpen) {
+    if (devtoolsDetected && !isOpen) {
       isOpen = true
       onOpen()
-    } else if (!detected && isOpen) {
+    } else if (!devtoolsDetected && isOpen) {
       isOpen = false
       onClose()
     }

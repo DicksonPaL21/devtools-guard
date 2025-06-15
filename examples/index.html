@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>DevTools Detector Demo</title>
+    <title>DevTools Guard Demo</title>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <body>
-    <h1>DevTools Detector Example</h1>
+    <h1>DevTools Guard Example</h1>
     <script type="module">
-      import { startDevtoolsDetector } from "../dist/index.js"
+      import { startDevtoolsDetector } from "../dist/index.mjs"
 
       startDevtoolsDetector({
         onOpen: () => {
