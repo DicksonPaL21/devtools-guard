@@ -1,6 +1,6 @@
-# 🛣️ devtools-detector Roadmap
+# 🛣️ devtools-guard Roadmap
 
-This file outlines the upcoming features, improvements, and long-term plans for the `devtools-detector` project.
+This file outlines the upcoming features, improvements, and long-term plans for the `devtools-guard` project.
 
 ---
 
@@ -40,8 +40,8 @@ This file outlines the upcoming features, improvements, and long-term plans for 
 
 ## 🎨 v1.3.0 – Framework Adapters
 
-- [ ] React Hook: `useDevtoolsDetector()`
-- [ ] Vue Composable: `useDevtoolsDetector()`
+- [ ] React Hook: `useDevtoolsGuard()`
+- [ ] Vue Composable: `useDevtoolsGuard()`
 - [ ] Svelte store integration
 - [ ] Add framework-specific examples
 
@@ -51,8 +51,8 @@ This file outlines the upcoming features, improvements, and long-term plans for 
 
 - [ ] Strategy-based countermeasures:
   - `alert`, `redirect`, `logout`, `blank`, `custom()`
-- [ ] Watch for tampering (`window.devtoolsDetector = null`)
-- [ ] Obfuscated fallback build (`devtools-detector-obf`)
+- [ ] Watch for tampering (`window.devtoolsGuard = null`)
+- [ ] Obfuscated fallback build (`devtools-guard-obf`)
 - [ ] Support for different build outputs:
   - ESM, UMD, Lite, Full
 - [ ] Detect automation tools:

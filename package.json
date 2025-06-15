@@ -1,24 +1,37 @@
 {
-  "name": "devtools-detector",
+  "name": "devtools-guard",
   "version": "0.0.1",
-  "description": "A lightweight JavaScript library to detect if browser DevTools are open, with customizable actions, framework support, and multiple detection strategies.",
+  "description": "A lightweight JavaScript library to detect and guard if browser DevTools are open, with customizable actions, framework support, and multiple detection strategies.",
   "main": "dist/index.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsup src/index.ts --format cjs,esm --dts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DicksonPaL21/devtools-guard.git"
   },
   "keywords": [
     "devtools",
     "detector",
+    "guard",
+    "browser",
+    "debugger",
     "anti-debug",
     "security",
-    "browser"
+    "frontend",
+    "tamper-detection"
   ],
-  "repository": "https://github.com/DicksonPaL21/devtools-detector.git",
   "author": "DicksonPaL21 <dicksonpal_021@yahoo.com.ph>",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DicksonPaL21/devtools-guard/issues"
+  },
+  "homepage": "https://github.com/DicksonPaL21/devtools-guard#readme",
   "devDependencies": {
-    "conventional-changelog-cli": "^5.0.0",
-    "typescript": "^5.8.3"
+    "conventional-changelog-cli": "^3.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
   }
 }

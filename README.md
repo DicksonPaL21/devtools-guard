@@ -1,18 +1,18 @@
-<h1 align="center">🛡️ devtools-detector</h1>
+<h1 align="center">🛡️ devtools-guard</h1>
 
 <p align="center">
-  <b>A lightweight JavaScript library to detect if browser DevTools are open, with customizable actions, framework support, and multiple detection strategies.</b>
+  <b>A lightweight JavaScript library to detect and guard if browser DevTools are open, with customizable actions, framework support, and multiple detection strategies.</b>
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/devtools-detector">
-    <img alt="NPM version" src="https://img.shields.io/npm/v/devtools-detector.svg">
+  <a href="https://www.npmjs.com/package/devtools-guard">
+    <img alt="NPM version" src="https://img.shields.io/npm/v/devtools-guard.svg">
   </a>
-  <a href="https://github.com/DicksonPaL21/devtools-detector/blob/master/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/DicksonPaL21/devtools-detector">
+  <a href="https://github.com/DicksonPaL21/devtools-guard/blob/master/LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/DicksonPaL21/devtools-guard">
   </a>
-  <a href="https://bundlephobia.com/result?p=devtools-detector">
-    <img alt="Bundle size" src="https://img.shields.io/bundlephobia/minzip/devtools-detector">
+  <a href="https://bundlephobia.com/result?p=devtools-guard">
+    <img alt="Bundle size" src="https://img.shields.io/bundlephobia/minzip/devtools-guard">
   </a>
 </p>
 
@@ -32,9 +32,9 @@
 ## 📦 Installation
 
 ```bash
-npm install devtools-detector
+npm install devtools-guard
 # or
-yarn add devtools-detector
+yarn add devtools-guard
 ```
 
 ---
@@ -42,7 +42,7 @@ yarn add devtools-detector
 ## ✨ Usage
 
 ```ts
-import { startDevtoolsDetector } from "devtools-detector"
+import { startDevtoolsDetector } from "devtools-guard"
 
 startDevtoolsDetector({
   onOpen: () => {
@@ -64,7 +64,7 @@ startDevtoolsDetector({
 <html>
   <head>
     <script type="module">
-      import { startDevtoolsDetector } from "https://unpkg.com/devtools-detector?module"
+      import { startDevtoolsDetector } from "https://unpkg.com/devtools-guard?module"
 
       startDevtoolsDetector({
         onOpen: () => alert("DevTools detected!"),
@@ -143,7 +143,7 @@ Coming soon:
 - React/Vue/Svelte integrations
 - Obfuscation-resistant builds
 - Analytics/logging integrations (opt-in)
-  See full roadmap → [ROADMAP.md](https://github.com/DicksonPaL21/devtools-detector/blob/master/ROADMAP.md)
+  See full roadmap → [ROADMAP.md](https://github.com/DicksonPaL21/devtools-guard/blob/master/ROADMAP.md)
 
 ---
 
@@ -163,10 +163,10 @@ Use via [unpkg](https://unpkg.com/) or [jsDelivr](https://cdn.jsdelivr.net/):
 
 ```html
 <!-- ES Module -->
-<script type="module" src="https://unpkg.com/devtools-detector?module"></script>
+<script type="module" src="https://unpkg.com/devtools-guard?module"></script>
 
 <!-- IIFE build (optional in future) -->
-<script src="https://cdn.jsdelivr.net/npm/devtools-detector/dist/devtools-detector.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/devtools-guard/dist/devtools-guard.iife.js"></script>
 ```
 
 ---
@@ -174,7 +174,7 @@ Use via [unpkg](https://unpkg.com/) or [jsDelivr](https://cdn.jsdelivr.net/):
 ## 📁 Project Structure
 
 ```
-devtools-detector/
+devtools-guard/
 ├── src/
 │   └── index.ts         # Core logic
 ├── dist/                # Bundled output (ESM & UMD)
@@ -199,7 +199,7 @@ Pull requests, issues, and feedback are very welcome!
 
 ## 📃 License
 
-MIT © 2025 [Your Name or Org]
+MIT © 2025 Dickson Palomeras
 
 ---
 
