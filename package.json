@@ -18,6 +18,7 @@
   "author": "DicksonPaL21 <dicksonpal_021@yahoo.com.ph>",
   "license": "MIT",
   "devDependencies": {
+    "conventional-changelog-cli": "^5.0.0",
     "typescript": "^5.8.3"
   }
 }
