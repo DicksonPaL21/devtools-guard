@@ -1,7 +1,7 @@
 {
   "name": "devtools-detector",
   "version": "0.0.1",
-  "description": "Detect when browser DevTools is opened or closed.",
+  "description": "A lightweight JavaScript library to detect if browser DevTools are open, with customizable actions, framework support, and multiple detection strategies.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
