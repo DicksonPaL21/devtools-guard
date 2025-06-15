@@ -1,0 +1,23 @@
+{
+  "name": "devtools-detector",
+  "version": "0.0.1",
+  "description": "Detect when browser DevTools is opened or closed.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "devtools",
+    "detector",
+    "anti-debug",
+    "security",
+    "browser"
+  ],
+  "repository": "https://github.com/DicksonPaL21/devtools-detector.git",
+  "author": "DicksonPaL21 <dicksonpal_021@yahoo.com.ph>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

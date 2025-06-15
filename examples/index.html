@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>DevTools Detector Demo</title>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <h1>DevTools Detector Example</h1>
+    <script type="module">
+      import { startDevtoolsDetector } from "../dist/index.js"
+
+      startDevtoolsDetector({
+        onOpen: () => {
+          alert("DevTools is open!")
+          document.body.style.backgroundColor = "red"
+        },
+        onClose: () => {
+          console.log("DevTools closed.")
+          document.body.style.backgroundColor = ""
+        },
+      })
+    </script>
+  </body>
+</html>
