@@ -1,3 +1,14 @@
+# 1.0.0 (2025-06-16)
+
+
+### Features
+
+* add logo ([506a91c](https://github.com/DicksonPaL21/devtools-guard/commit/506a91c0657e85fa9eff904cd1cba2136ac10023))
+* **ci:** add GitHub Actions workflow to auto-publish package to NPM on release ([a75afee](https://github.com/DicksonPaL21/devtools-guard/commit/a75afeed85189536baa3beb21fbac5f31de850be))
+* rename project to devtools-guard with updated docs, demo, and source ([30320ab](https://github.com/DicksonPaL21/devtools-guard/commit/30320ab43e4a47746903733a1cb969319b21de61))
+
+
+
 ## 0.0.2 (2025-06-16)
 
 ### Features
