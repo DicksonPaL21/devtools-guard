@@ -24,7 +24,7 @@
 
 ---
 
-## 🚀 Features (v1.1.0)
+## 🚀 Features (v1.1.3)
 
 - 🔍 Detect when browser DevTools are open
 - 🕵️‍♂️ Multiple detection strategies:
