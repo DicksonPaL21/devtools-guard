@@ -223,7 +223,7 @@ Pull requests, issues, and feedback are welcome!
 
 ## 📃 License
 
-MIT © 2025 [Dickson Palomeras](https://github.com/DicksonPaL21)
+MIT © 2025 [DicksonPaL21](https://github.com/DicksonPaL21)
 
 ---
 

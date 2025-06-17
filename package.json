@@ -1,6 +1,6 @@
 {
   "name": "devtools-guard",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A lightweight JavaScript library to detect and guard if browser DevTools are open, with customizable actions, framework support, and multiple detection strategies.",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
