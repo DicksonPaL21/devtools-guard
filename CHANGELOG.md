@@ -1,3 +1,12 @@
+# [1.1.0](https://github.com/DicksonPaL21/devtools-guard/compare/v1.0.0...v1.1.0) (2025-06-17)
+
+
+### Features
+
+* **core:** add multi-method DevTools detection and debounce config ([c33c9af](https://github.com/DicksonPaL21/devtools-guard/commit/c33c9af2d894b7132a4917503d679062d58a0338))
+
+
+
 # 1.0.0 (2025-06-16)
 
 

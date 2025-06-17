@@ -1,0 +1,7 @@
+public/
+examples/
+test/
+.github
+tsconfig.json
+jest.config.js
+*.md

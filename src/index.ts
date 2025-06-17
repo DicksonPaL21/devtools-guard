@@ -1,41 +1,79 @@
-/**
- * 🛡️ devtools-guard
- * A lightweight utility to detect if browser DevTools are open.
- */
-
 export interface DetectorOptions {
-  /** Interval in milliseconds to check for DevTools (default: 1000) */
   interval?: number
-
-  /** Callback triggered when DevTools is opened */
-  onOpen?: () => void
-
-  /** Callback triggered when DevTools is closed */
+  debounceMs?: number
+  methods?: Array<"dimensions" | "console" | "debugger" | "toString">
+  onOpen?: (details: DetectionResult) => void
   onClose?: () => void
 }
 
-let isOpen = false
+export interface DetectionResult {
+  detectedBy: string[]
+  timestamp: number
+}
+
+let isDevtoolsOpen = false
+let lastTriggerTime = 0
 
 export function startDevtoolsDetector(options: DetectorOptions = {}) {
   const {
     interval = 1000,
-    onOpen = () => console.warn("DevTools opened!"),
+    debounceMs = 500,
+    methods = ["dimensions", "console", "debugger", "toString"],
+    onOpen = (d) => console.warn("DevTools opened via:", d.detectedBy),
     onClose = () => {},
   } = options
 
-  const threshold = 160 // devtools usually causes >160px diff in dimensions
+  const detectMethods = {
+    dimensions: () => {
+      const threshold = 160
+      return (
+        window.outerWidth - window.innerWidth > threshold ||
+        window.outerHeight - window.innerHeight > threshold
+      )
+    },
+
+    console: () => {
+      const start = performance.now()
+      console.log("%c", "color: transparent")
+      const duration = performance.now() - start
+      return duration > 5
+    },
+
+    debugger: () => {
+      const start = performance.now()
+      debugger
+      const duration = performance.now() - start
+      return duration > 10
+    },
+
+    toString: () => {
+      try {
+        const fn = () => {}
+        const nativeStr = fn.toString()
+        const fakeStr = Function.prototype.toString.call(fn)
+        return nativeStr !== fakeStr
+      } catch {
+        return false
+      }
+    },
+  }
 
   setInterval(() => {
-    const widthDiff = window.outerWidth - window.innerWidth
-    const heightDiff = window.outerHeight - window.innerHeight
+    const activeMethods = methods.filter((name) => detectMethods[name]?.())
+    const now = Date.now()
 
-    const devtoolsDetected = widthDiff > threshold || heightDiff > threshold
+    if (
+      activeMethods.length > 0 &&
+      !isDevtoolsOpen &&
+      now - lastTriggerTime > debounceMs
+    ) {
+      isDevtoolsOpen = true
+      lastTriggerTime = now
+      onOpen({ detectedBy: activeMethods, timestamp: now })
+    }
 
-    if (devtoolsDetected && !isOpen) {
-      isOpen = true
-      onOpen()
-    } else if (!devtoolsDetected && isOpen) {
-      isOpen = false
+    if (activeMethods.length === 0 && isDevtoolsOpen) {
+      isDevtoolsOpen = false
       onClose()
     }
   }, interval)
