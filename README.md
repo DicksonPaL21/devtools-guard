@@ -1,7 +1,7 @@
 <h1 align="center">🛡️ devtools-guard</h1>
 
 <p align="center">
-  <b>A lightweight JavaScript library to detect and guard when browser DevTools are open, with customizable actions, framework support, and multiple detection strategies.</b>
+  <b>A lightweight JavaScript library to detect and guard when browser DevTools are open, with customizable actions, multi-strategy detection, and upcoming framework support.</b>
 </p>
 
 <p align="center">
@@ -24,14 +24,19 @@
 
 ---
 
-## 🚀 Features
+## 🚀 Features (v1.1.0)
 
 - 🔍 Detect when browser DevTools are open
-- 🕵️ Multiple detection strategies
-- 📦 Tiny, framework-agnostic package
+- 🕵️‍♂️ Multiple detection strategies:
+  - Window size inspection
+  - Console trap timing
+  - `debugger` statement trap
+  - `Function.prototype.toString` tampering
+- ⚡ Debounced detection to reduce false positives
 - 📣 `onOpen` and `onClose` event handlers
-- 🔧 Configurable polling interval
-- 💡 Easy integration with JavaScript and TypeScript projects
+- ⚙️ Configurable interval and detection strategies
+- 📦 Lightweight, framework-agnostic
+- 🧪 TypeScript support built-in
 
 ---
 
@@ -51,14 +56,27 @@ yarn add devtools-guard
 import { startDevtoolsDetector } from "devtools-guard"
 
 startDevtoolsDetector({
-  onOpen: () => {
-    alert("DevTools is open! 🚨")
+  onOpen: ({ detectedBy }) => {
+    alert(`DevTools is open! Detected via: ${detectedBy.join(", ")}`)
   },
   onClose: () => {
     console.log("DevTools closed ✅")
   },
-  interval: 500, // optional, checks every 500ms
+  methods: ["dimensions", "console", "debugger", "toString"], // default: all
+  interval: 500,
+  debounceMs: 1000,
 })
+```
+
+---
+
+## ✅ Usage Notes
+
+- The `console` and `debugger` methods are browser-dependent and timing-sensitive.
+- You can selectively disable methods like:
+
+```ts
+startDevtoolsDetector({ methods: ["dimensions", "debugger"] })
 ```
 
 ---
@@ -73,7 +91,8 @@ startDevtoolsDetector({
       import { startDevtoolsDetector } from "https://unpkg.com/devtools-guard?module"
 
       startDevtoolsDetector({
-        onOpen: () => alert("DevTools detected!"),
+        onOpen: ({ detectedBy }) =>
+          alert(`DevTools detected via: ${detectedBy.join(", ")}`),
         onClose: () => console.log("DevTools closed."),
       })
     </script>
@@ -90,12 +109,13 @@ startDevtoolsDetector({
 
 ### `startDevtoolsDetector(options)`
 
-| Option     | Type         | Description                                        |
-| ---------- | ------------ | -------------------------------------------------- |
-| `onOpen`   | `() => void` | Callback when DevTools are opened                  |
-| `onClose`  | `() => void` | Callback when DevTools are closed                  |
-| `interval` | `number`     | Polling interval in milliseconds (default: `1000`) |
-| `methods`  | `string[]`   | Detection strategies to use (default: all)         |
+| Option       | Type                             | Description                                                                  |
+| ------------ | -------------------------------- | ---------------------------------------------------------------------------- |
+| `onOpen`     | `(res: DetectionResult) => void` | Callback when DevTools are detected.                                         |
+| `onClose`    | `() => void`                     | Callback when DevTools are closed.                                           |
+| `interval`   | `number`                         | Polling interval in ms (default: `1000`).                                    |
+| `debounceMs` | `number`                         | Delay before triggering detection again (default: `500`).                    |
+| `methods`    | `string[]`                       | Methods used for detection: `dimensions`, `console`, `debugger`, `toString`. |
 
 ---
 
@@ -113,13 +133,13 @@ master
 └── release/v2.0.0
 ```
 
-| Branch              | Purpose                                                                     |
-| ------------------- | --------------------------------------------------------------------------- |
-| `master`            | ✅ Production-ready code, published to NPM. Tags live here (e.g. `v1.0.0`). |
-| `develop`           | 🌱 Active development branch. All new features go here first.               |
-| `feature/*`         | 🧩 Feature branches (e.g., `feature/v1.1-console-detection`)                |
-| `release/*`         | 🚀 Pre-release branches to prep and test before pushing to `master`.        |
-| `hotfix/*` _(opt.)_ | 🛠 Urgent patches that go directly to `master` then `develop`.               |
+| Branch              | Purpose                                              |
+| ------------------- | ---------------------------------------------------- |
+| `master`            | ✅ Stable, published version                         |
+| `develop`           | 🚧 Active development                                |
+| `feature/*`         | 🌱 Feature branches (e.g., `feature/v1.2-event-api`) |
+| `release/*`         | 🚀 Final staging for major version releases          |
+| `hotfix/*` _(opt.)_ | 🛠 Urgent patches directly merged to master           |
 
 ---
 
@@ -138,13 +158,13 @@ git checkout -b feature/v1.1-multi-method-detection develop
 
 ## 🛣️ Roadmap Highlights
 
-Planned features:
-
-- More detection methods (debugger trap, console timing, etc.)
-- EventEmitter support (`on('open')`, `on('close')`)
-- React/Vue/Svelte integrations
-- Obfuscation-resistant builds
-- Analytics/logging integrations (opt-in)
+| Version  | Highlights                                                     |
+| -------- | -------------------------------------------------------------- |
+| `v1.1.0` | ✅ Multi-method detection, debounce, strategy config           |
+| `v1.2.0` | 🔌 EventEmitter support, `on('open')`, `off()`, etc.           |
+| `v1.3.0` | 🔧 React/Vue/Svelte composables/hooks                          |
+| `v2.0.0` | 🧱 Obfuscation resistance, headless detection, multiple builds |
+| `v2.1.0` | 📈 Analytics dashboard (optional, opt-in)                      |
 
 See full roadmap → [ROADMAP.md](https://github.com/DicksonPaL21/devtools-guard/blob/master/ROADMAP.md)
 
@@ -153,38 +173,39 @@ See full roadmap → [ROADMAP.md](https://github.com/DicksonPaL21/devtools-guard
 ## 💡 Use Cases
 
 - Prevent cheating in browser-based games
-- Hide sensitive business logic from reverse engineering
-- Trigger alerts or logging when DevTools are open
-- Log attempts to inspect proprietary web apps
-- Detect tampered environments or automation (in future releases)
+- Detect inspection attempts in client-side SaaS/web apps
+- Log or alert when sensitive code is at risk
+- Automatically logout users or restrict actions
+- In future: detect headless automation environments
 
 ---
 
-## 🌐 CDN
+<!-- ## 🌐 CDN -->
 
-Use via [unpkg](https://unpkg.com/) or [jsDelivr](https://cdn.jsdelivr.net/):
+<!-- Use via [unpkg](https://unpkg.com/) or [jsDelivr](https://cdn.jsdelivr.net/): -->
 
-```html
+<!-- ```html -->
 <!-- ES Module -->
-<script type="module" src="https://unpkg.com/devtools-guard?module"></script>
+<!-- <script type="module" src="https://unpkg.com/devtools-guard?module"></script> -->
 
 <!-- IIFE build (coming soon) -->
 <!-- <script src="https://cdn.jsdelivr.net/npm/devtools-guard/dist/devtools-guard.iife.js"></script> -->
-```
-
----
+<!-- ``` -->
+<!--  -->
+<!-- --- -->
 
 ## 📁 Project Structure
 
 ```text
 devtools-guard/
-├── src/                # Core logic
-│   └── index.ts
-├── dist/               # Bundled output (ESM & UMD)
-├── examples/           # Demo HTML + JS
+├── src/                # Core detection logic
+├── dist/               # ESM and UMD bundles
+├── examples/           # Live HTML demos
+├── tests/              # Unit tests (WIP)
 ├── README.md
 ├── ROADMAP.md
-└── LICENSE
+├── LICENSE
+└── package.json
 ```
 
 ---

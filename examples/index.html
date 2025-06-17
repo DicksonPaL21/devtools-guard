@@ -1,24 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>DevTools Guard Demo</title>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevTools Detector v1.1.0 Demo</title>
   </head>
   <body>
-    <h1>DevTools Guard Example</h1>
+    <h1>DevTools Detector v1.1.0</h1>
+    <p>Open DevTools to trigger detection.</p>
+
     <script type="module">
-      import { startDevtoolsDetector } from "../dist/index.mjs"
+      import { startDevtoolsDetector } from "../dist/index.js"
 
       startDevtoolsDetector({
-        onOpen: () => {
-          alert("DevTools is open!")
-          document.body.style.backgroundColor = "red"
+        onOpen: ({ detectedBy, timestamp }) => {
+          console.warn(
+            `⚠️ DevTools opened! Methods:`,
+            detectedBy,
+            "@",
+            new Date(timestamp).toLocaleTimeString()
+          )
+          document.body.style.background = "#ffcccc"
         },
         onClose: () => {
-          console.log("DevTools closed.")
-          document.body.style.backgroundColor = ""
+          console.log("✅ DevTools closed")
+          document.body.style.background = ""
         },
+        methods: ["dimensions", "console", "debugger", "toString"],
+        debounceMs: 1000,
+        interval: 500,
       })
     </script>
   </body>
