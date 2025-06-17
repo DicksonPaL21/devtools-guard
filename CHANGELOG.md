@@ -1,3 +1,7 @@
+## [1.1.3](https://github.com/DicksonPaL21/devtools-guard/compare/v1.1.2...v1.1.3) (2025-06-17)
+
+
+
 ## [1.1.2](https://github.com/DicksonPaL21/devtools-guard/compare/v1.1.1...v1.1.2) (2025-06-17)
 
 
