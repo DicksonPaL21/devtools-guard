@@ -17,14 +17,14 @@ This file outlines the upcoming features, improvements, and long-term plans for 
 
 ## 🛠️ v1.1.0 – Core Detection Enhancements (Planned)
 
-- [ ] Add additional detection methods:
-  - [ ] `debugger` trap
-  - [ ] `console.log` timing delay trap
-  - [ ] `Function.toString()` tampering trap
-- [ ] Scoring-based detection result: `detectedBy: string[]`
-- [ ] Option to disable/enable specific methods
-- [ ] Debounce and anti-false-positive logic
-- [ ] Improved documentation on detection strategies
+- [x] Add additional detection methods:
+  - [x] `debugger` trap
+  - [x] `console.log` timing delay trap
+  - [x] `Function.toString()` tampering trap
+- [x] Scoring-based detection result: `detectedBy: string[]`
+- [x] Option to disable/enable specific methods
+- [x] Debounce and anti-false-positive logic
+- [x] Improved documentation on detection strategies
 
 ---
 
