@@ -1,34 +1,143 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>DevTools Detector v1.1.0 Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>devtools-guard example</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        color-scheme: light dark;
+      }
+
+      body {
+        display: grid;
+        min-height: 100vh;
+        margin: 0;
+        place-items: center;
+      }
+
+      main {
+        width: min(36rem, calc(100% - 2rem));
+      }
+
+      .status {
+        padding: 1rem;
+        border: 1px solid currentColor;
+        border-radius: 0.5rem;
+      }
+
+      .status[data-open="true"] {
+        color: #b42318;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-block: 1rem;
+      }
+
+      button {
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+      }
+
+      pre {
+        overflow: auto;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background: color-mix(in srgb, CanvasText 8%, Canvas);
+      }
+    </style>
   </head>
   <body>
-    <h1>DevTools Detector v1.1.0</h1>
-    <p>Open DevTools to trigger detection.</p>
+    <main>
+      <h1>devtools-guard example</h1>
+      <p>
+        This page displays a best-effort signal. DevTools detection is not a
+        security boundary and may produce false positives or negatives.
+      </p>
+
+      <p id="status" class="status" role="status" aria-live="polite">
+        Loading the guard…
+      </p>
+
+      <div class="controls">
+        <button id="start" type="button">Start monitoring</button>
+        <button id="stop" type="button">Stop monitoring</button>
+        <button id="check" type="button">Check now</button>
+      </div>
+
+      <pre id="state" aria-label="Current DevTools state"></pre>
+
+      <noscript>This example requires JavaScript.</noscript>
+    </main>
 
     <script type="module">
-      import { startDevtoolsDetector } from "../dist/index.js"
+      const statusElement = document.querySelector("#status")
+      const stateElement = document.querySelector("#state")
+      const startButton = document.querySelector("#start")
+      const stopButton = document.querySelector("#stop")
+      const checkButton = document.querySelector("#check")
 
-      startDevtoolsDetector({
-        onOpen: ({ detectedBy, timestamp }) => {
-          console.warn(
-            `⚠️ DevTools opened! Methods:`,
-            detectedBy,
-            "@",
-            new Date(timestamp).toLocaleTimeString()
+      try {
+        if (location.protocol === "file:") {
+          throw new Error(
+            "Serve the repository over HTTP (for example: npx serve .) instead of opening this file directly.",
           )
-          document.body.style.background = "#ffcccc"
-        },
-        onClose: () => {
-          console.log("✅ DevTools closed")
-          document.body.style.background = ""
-        },
-        methods: ["dimensions", "console", "debugger", "toString"],
-        debounceMs: 1000,
-        interval: 500,
-      })
+        }
+
+        const { createDevtoolsGuard } = await import("../dist/index.js")
+
+        const render = (state) => {
+          statusElement.dataset.open = String(state.isOpen)
+          statusElement.textContent = state.isOpen
+            ? "DevTools are likely open."
+            : "DevTools are not currently detected."
+          stateElement.textContent = JSON.stringify(state, null, 2)
+          startButton.disabled = guard.isRunning()
+          stopButton.disabled = !guard.isRunning()
+        }
+
+        const guard = createDevtoolsGuard({
+          onChange: render,
+        })
+
+        startButton.addEventListener("click", () => {
+          guard.start()
+          render(guard.getState())
+        })
+
+        stopButton.addEventListener("click", () => {
+          guard.stop()
+          render(guard.getState())
+        })
+
+        checkButton.addEventListener("click", async () => {
+          checkButton.disabled = true
+          try {
+            render(await guard.check())
+          } finally {
+            checkButton.disabled = false
+          }
+        })
+
+        window.addEventListener("pagehide", () => guard.destroy(), { once: true })
+
+        guard.start()
+        render(guard.getState())
+      } catch (error) {
+        statusElement.dataset.open = "false"
+        statusElement.textContent =
+          error instanceof Error ? error.message : "Unable to load the example."
+        stateElement.textContent = "Run npm install and npm run build before serving this page."
+        startButton.disabled = true
+        stopButton.disabled = true
+        checkButton.disabled = true
+        console.error(error)
+      }
     </script>
   </body>
 </html>
