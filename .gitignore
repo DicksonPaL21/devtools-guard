@@ -1,6 +1,6 @@
 dist/
 node_modules/
 coverage/
-deploy.sh
 
+.deploy_state
 .DS_Store
