@@ -37,3 +37,23 @@
 - add logo ([29b0d27](https://github.com/DicksonPaL21/devtools-guard/commit/29b0d27830eff1711e7451b9f2052e2e492006c1))
 - **ci:** add GitHub Actions workflow to auto-publish package to NPM on release ([ebd3917](https://github.com/DicksonPaL21/devtools-guard/commit/ebd3917d0cb02b0d21fca6efeb8f75d25032ee00))
 - rename project to devtools-guard with updated docs, demo, and source ([74951e2](https://github.com/DicksonPaL21/devtools-guard/commit/74951e250d201072fcba70b56eb8fe36a325bf3f))
+## [Unreleased]
+
+### Added
+
+- Modern lifecycle API, one-off detection, typed confidence/state, subscriptions, visibility pausing, and comprehensive tests.
+- npm validation scripts and push/pull-request CI.
+
+### Changed
+
+- Isolated detection methods with dimensions as the only default and timing probes opt-in.
+- Modern ESM/CommonJS exports, package metadata, documentation, and npm contents.
+
+### Fixed
+
+- SSR crashes, leaked intervals, shared state, callback propagation, noisy defaults, and missing cleanup.
+- CI package-manager mismatch.
+
+### Removed
+
+- Unreliable `Function.prototype.toString` detection from the modern API; its legacy option is accepted but ignored.

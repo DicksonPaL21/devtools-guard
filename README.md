@@ -1,232 +1,172 @@
-<h1 align="center">🛡️ devtools-guard</h1>
+# devtools-guard
 
-<p align="center">
-  <b>A lightweight JavaScript library to detect and guard when browser DevTools are open, with customizable actions, multi-strategy detection, and upcoming framework support.</b>
-</p>
+A small, framework-agnostic TypeScript utility that detects signals commonly associated with open browser DevTools. It is a best-effort deterrence and observability tool, not a security boundary.
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/devtools-guard">
-    <img alt="NPM version" src="https://img.shields.io/npm/v/devtools-guard.svg">
-  </a>
-  <a href="https://github.com/DicksonPaL21/devtools-guard/blob/master/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/DicksonPaL21/devtools-guard">
-  </a>
-  <a href="https://bundlephobia.com/package/devtools-guard">
-    <img alt="Bundle size" src="https://img.shields.io/bundlephobia/minzip/devtools-guard">
-  </a>
-  <a href="https://www.npmjs.com/package/devtools-guard">
-    <img alt="Total Downloads" src="https://img.shields.io/npm/dt/devtools-guard" />
-  </a>
-  <a href="https://www.npmjs.com/package/devtools-guard">
-    <img alt="NPM Install" src="https://img.shields.io/npm/i/devtools-guard" />
-  </a>
-</p>
-
----
-
-## 🚀 Features (v1.1.3)
-
-- 🔍 Detect when browser DevTools are open
-- 🕵️‍♂️ Multiple detection strategies:
-  - Window size inspection
-  - Console trap timing
-  - `debugger` statement trap
-  - `Function.prototype.toString` tampering
-- ⚡ Debounced detection to reduce false positives
-- 📣 `onOpen` and `onClose` event handlers
-- ⚙️ Configurable interval and detection strategies
-- 📦 Lightweight, framework-agnostic
-- 🧪 TypeScript support built-in
-
----
-
-## 📦 Installation
+## Installation
 
 ```bash
 npm install devtools-guard
-# or
-yarn add devtools-guard
 ```
 
----
-
-## ✨ Usage
+## Quick Start
 
 ```ts
-import { startDevtoolsDetector } from "devtools-guard"
+import { createDevtoolsGuard } from "devtools-guard"
 
-startDevtoolsDetector({
-  onOpen: ({ detectedBy }) => {
-    alert(`DevTools is open! Detected via: ${detectedBy.join(", ")}`)
+const guard = createDevtoolsGuard({
+  onOpen(state) {
+    console.log("DevTools are likely open", state)
   },
-  onClose: () => {
-    console.log("DevTools closed ✅")
+})
+
+guard.start()
+// Later: guard.destroy()
+```
+
+Importing the package has no side effects. Monitoring is off until `start()` is called, unless `autoStart` is enabled.
+
+## API
+
+### `createDevtoolsGuard(options?)`
+
+Creates an independent monitor with these methods:
+
+- `start()` starts polling and is idempotent.
+- `stop()` stops polling without discarding configuration or state.
+- `check()` immediately runs one asynchronous detection cycle and returns the latest stable `DevtoolsState`.
+- `getState()` returns a defensive copy of the latest stable state.
+- `subscribe(listener)` observes state transitions and returns an unsubscribe function.
+- `destroy()` stops the monitor, removes listeners, and clears subscribers. Repeated cleanup is safe.
+- `isRunning()` reports whether monitoring is active.
+
+```ts
+interface DevtoolsState {
+  isOpen: boolean
+  orientation: "vertical" | "horizontal" | null
+  confidence: number
+  detectedBy: ("dimensions" | "debuggerTiming" | "consoleTiming")[]
+  timestamp: number
+}
+```
+
+### `detectDevtools(options?)`
+
+Runs one cycle without starting a timer:
+
+```ts
+import { detectDevtools } from "devtools-guard"
+
+const state = await detectDevtools()
+```
+
+### Legacy API
+
+`startDevtoolsDetector`, `createDevtoolsDetector`, and `isDevtoolsOpen` remain available for compatibility and are deprecated. New code should use `createDevtoolsGuard`. The legacy adapter defaults to the polite dimensions method; legacy `console`, `debugger`, and `toString` names are accepted, but `toString` is ignored because it did not reliably indicate DevTools usage.
+
+## Configuration
+
+```ts
+const guard = createDevtoolsGuard({
+  enabled: true,
+  interval: 1000,
+  threshold: 160,
+  confidenceThreshold: 0.6,
+  methods: {
+    dimensions: true,
+    debuggerTiming: false,
+    consoleTiming: false,
   },
-  methods: ["dimensions", "console", "debugger", "toString"], // default: all
-  interval: 500,
-  debounceMs: 1000,
+  debounce: { open: 2, close: 2 },
+  pauseWhenHidden: true,
+  autoStart: false,
+  debuggerThresholdMs: 100,
+  consoleThresholdMs: 5,
+  onOpen(state) {},
+  onClose(state) {},
+  onChange(state) {},
 })
 ```
 
----
+Intervals are clamped to at least 100 ms. Nested options are merged with defaults and input is not mutated. Callback errors are isolated so application code cannot stop monitoring.
 
-## ✅ Usage Notes
+## Detection Methods
 
-- The `console` and `debugger` methods are browser-dependent and timing-sensitive.
-- You can selectively disable methods like:
+- `dimensions` compares outer and inner window dimensions, reports likely dock orientation, and contributes confidence from `0.6` to `0.8`. It is enabled by default.
+- `debuggerTiming` measures time around one `debugger` statement and contributes `0.8`. It is opt-in because pauses can interrupt development and timing varies.
+- `consoleTiming` measures one transparent `console.debug` operation and contributes `0.4`. It is opt-in because console behavior is browser-dependent and it cannot meet the default threshold alone.
 
-```ts
-startDevtoolsDetector({ methods: ["dimensions", "debugger"] })
+Confidence is combined as independent evidence: `1 - product(1 - signal confidence)`. A transition occurs only after the configured number of consecutive open or close observations.
+
+Dimension detection is skipped on likely mobile devices. Sidebars, browser chrome, responsive mode, window layout, zoom, and browser differences can still cause false positives or negatives.
+
+## React Example
+
+```tsx
+useEffect(() => {
+  const guard = createDevtoolsGuard({
+    onChange(state) {
+      setDevtoolsOpen(state.isOpen)
+    },
+  })
+  guard.start()
+  return () => guard.destroy()
+}, [])
 ```
 
----
+## Next.js Example
 
-## 🧪 Example (HTML)
+Use monitoring from a client component. The package itself remains safe to import during SSR.
 
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module">
-      import { startDevtoolsDetector } from "https://unpkg.com/devtools-guard?module"
+```tsx
+"use client"
 
-      startDevtoolsDetector({
-        onOpen: ({ detectedBy }) =>
-          alert(`DevTools detected via: ${detectedBy.join(", ")}`),
-        onClose: () => console.log("DevTools closed."),
-      })
-    </script>
-  </head>
-  <body>
-    <h1>DevTools Detection Example</h1>
-  </body>
-</html>
+import { useEffect } from "react"
+import { createDevtoolsGuard } from "devtools-guard"
+
+export function DevtoolsObserver() {
+  useEffect(() => {
+    const guard = createDevtoolsGuard()
+    guard.start()
+    return () => guard.destroy()
+  }, [])
+  return null
+}
 ```
 
----
+## Limitations
 
-## ⚙️ API
+No browser exposes a reliable standard API for determining whether DevTools are open. Detection differs across Chrome, Edge, Firefox, and Safari. Undocked tools may not affect dimensions, mobile measurements are unreliable, and timing probes depend on the runtime. Treat every result as an estimate.
 
-### `startDevtoolsDetector(options)`
+The library does not redirect, reload, disable interaction, report users, modify browser globals, or impose a response policy. Applications decide how to use the signal.
 
-| Option       | Type                             | Description                                                                  |
-| ------------ | -------------------------------- | ---------------------------------------------------------------------------- |
-| `onOpen`     | `(res: DetectionResult) => void` | Callback when DevTools are detected.                                         |
-| `onClose`    | `() => void`                     | Callback when DevTools are closed.                                           |
-| `interval`   | `number`                         | Polling interval in ms (default: `1000`).                                    |
-| `debounceMs` | `number`                         | Delay before triggering detection again (default: `500`).                    |
-| `methods`    | `string[]`                       | Methods used for detection: `dimensions`, `console`, `debugger`, `toString`. |
+## Security limitations
 
----
+Client-side JavaScript can be inspected and modified. Users can disable JavaScript, change runtime state, use extensions, or capture network requests without DevTools. Source maps may expose source, and minification is not encryption. DevTools detection cannot protect API secrets or trusted authorization logic.
 
-## 🧭 Branching Strategy
+> Never put secrets, private credentials, authorization logic, or trusted security decisions in client-side code.
 
-```text
-master
-│
-├── develop
-│   ├── feature/v1.1-multi-method-detection
-│   ├── feature/v1.2-event-emitter-api
-│   ├── feature/v1.3-framework-hooks
-│   └── ...
-│
-└── release/v2.0.0
-```
+Enforce authentication, authorization, rate limits, validation, and sensitive business rules on a trusted server.
 
-| Branch              | Purpose                                              |
-| ------------------- | ---------------------------------------------------- |
-| `master`            | ✅ Stable, published version                         |
-| `develop`           | 🚧 Active development                                |
-| `feature/*`         | 🌱 Feature branches (e.g., `feature/v1.2-event-api`) |
-| `release/*`         | 🚀 Final staging for major version releases          |
-| `hotfix/*` _(opt.)_ | 🛠 Urgent patches directly merged to master           |
+## Browser Compatibility
 
----
+The package targets modern evergreen Chrome, Edge, Firefox, and Safari. It is SSR-safe in Node-based build tools and frameworks. Detection results are not identical across browsers.
 
-## ⚙️ Initial Repo Setup
+## Performance
+
+The default monitor performs one dimensions check per second and pauses while the document is hidden. The package has zero runtime dependencies and no import-time work. Source maps ship for debugging; omitting them is not a security measure.
+
+## Release
 
 ```bash
-# Create develop from master
-git checkout master
-git checkout -b develop
-
-# Start your first feature branch
-git checkout -b feature/v1.1-multi-method-detection develop
+npm ci
+npm run validate
+npm pack --dry-run
+npm version patch|minor|major
+npm publish
 ```
 
----
+Publishing is manual. Validate the archive before release.
 
-## 🛣️ Roadmap Highlights
+## License
 
-| Version  | Highlights                                                     |
-| -------- | -------------------------------------------------------------- |
-| `v1.1.0` | ✅ Multi-method detection, debounce, strategy config           |
-| `v1.2.0` | 🔌 EventEmitter support, `on('open')`, `off()`, etc.           |
-| `v1.3.0` | 🔧 React/Vue/Svelte composables/hooks                          |
-| `v2.0.0` | 🧱 Obfuscation resistance, headless detection, multiple builds |
-| `v2.1.0` | 📈 Analytics dashboard (optional, opt-in)                      |
-
-See full roadmap → [ROADMAP.md](https://github.com/DicksonPaL21/devtools-guard/blob/master/ROADMAP.md)
-
----
-
-## 💡 Use Cases
-
-- Prevent cheating in browser-based games
-- Detect inspection attempts in client-side SaaS/web apps
-- Log or alert when sensitive code is at risk
-- Automatically logout users or restrict actions
-- In future: detect headless automation environments
-
----
-
-<!-- ## 🌐 CDN -->
-
-<!-- Use via [unpkg](https://unpkg.com/) or [jsDelivr](https://cdn.jsdelivr.net/): -->
-
-<!-- ```html -->
-<!-- ES Module -->
-<!-- <script type="module" src="https://unpkg.com/devtools-guard?module"></script> -->
-
-<!-- IIFE build (coming soon) -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/devtools-guard/dist/devtools-guard.iife.js"></script> -->
-<!-- ``` -->
-<!--  -->
-<!-- --- -->
-
-## 📁 Project Structure
-
-```text
-devtools-guard/
-├── src/                # Core detection logic
-├── dist/               # ESM and UMD bundles
-├── examples/           # Live HTML demos
-├── tests/              # Unit tests (WIP)
-├── README.md
-├── ROADMAP.md
-├── LICENSE
-└── package.json
-```
-
----
-
-## 🧑‍💻 Contributing
-
-Pull requests, issues, and feedback are welcome!
-
-1. Fork this repo
-2. Create your feature branch (`git checkout -b feature/something`)
-3. Commit your changes (`git commit -m 'feat: add something'`)
-4. Push and open a PR 🎉
-
----
-
-## 📃 License
-
-MIT © 2025 [DicksonPaL21](https://github.com/DicksonPaL21)
-
----
-
-## 📣 Feedback
-
-Have ideas or feedback? Open an issue or reach out—let's make DevTools detection better for everyone.
+MIT © 2025 DicksonPaL21
