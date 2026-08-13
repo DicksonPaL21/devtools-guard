@@ -158,14 +158,12 @@ The default monitor performs one dimensions check per second and pauses while th
 ## Release
 
 ```bash
-npm ci
-npm run validate
-npm pack --dry-run
-npm version patch|minor|major
-npm publish
+./deploy.sh --preflight stable:patch
+./deploy.sh --dry-run stable:patch
+./deploy.sh stable:patch
 ```
 
-Publishing is manual. Validate the archive before release.
+The deploy script validates and builds the package, updates the release branches and tag, creates the GitHub release when `gh` is available, and publishes directly to npm. Authenticate locally with `npm login` before deploying. If npm publishing fails, fix the authentication or registry issue and resume with `./deploy.sh --continue`.
 
 ## License
 

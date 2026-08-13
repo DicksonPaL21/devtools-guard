@@ -48,6 +48,7 @@ fi
 DEPLOYMENT_TYPE=$(echo "$DEPLOYMENT_TARGET" | cut -d ':' -f 1)
 VERSION_TYPE=$(echo "$DEPLOYMENT_TARGET" | cut -d ':' -f 2)
 CURRENT_VERSION="v$(jq -r '.version' package.json)"
+PACKAGE_NAME=$(jq -r '.name' package.json)
 LATEST_VERSION=""
 COMMIT_MESSAGE=""
 
@@ -73,6 +74,9 @@ save_state() {
   echo "STEP=$1" > "$STATE_FILE"
   echo "LATEST_VERSION=\"$LATEST_VERSION\"" >> "$STATE_FILE"
   echo "COMMIT_MESSAGE=\"$COMMIT_MESSAGE\"" >> "$STATE_FILE"
+  echo "DEPLOYMENT_TYPE=\"$DEPLOYMENT_TYPE\"" >> "$STATE_FILE"
+  echo "VERSION_TYPE=\"$VERSION_TYPE\"" >> "$STATE_FILE"
+  echo "DEVELOP_BRANCH=\"$DEVELOP_BRANCH\"" >> "$STATE_FILE"
   echo "CHANGES_STASHED=$CHANGES_STASHED" >> "$STATE_FILE"
   echo "ORIGINAL_BRANCH=\"$ORIGINAL_BRANCH\"" >> "$STATE_FILE"
 }
@@ -110,7 +114,16 @@ run_preflight_checks() {
     echo "❌ jq is required but not installed. Aborting." && exit 1
   fi
 
-  if ! gh auth status >/dev/null 2>&1; then
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "❌ npm is required but not installed. Aborting." && exit 1
+  fi
+
+  if ! npm whoami >/dev/null 2>&1; then
+    echo "❌ npm is not authenticated. Run 'npm login', then retry."
+    exit 1
+  fi
+
+  if command -v gh >/dev/null 2>&1 && ! gh auth status >/dev/null 2>&1; then
     echo "🔐 GitHub CLI found but not authenticated. Starting login..."
     gh auth login
   fi
@@ -141,6 +154,7 @@ run_dry_run() {
   echo "Would commit: release: bump version from v$current to v$simulated_version"
   echo "Would push to origin: release/v$simulated_version"
   echo "Would squash merge into $DEFAULT_BRANCH, tag and rebase $DEVELOP_BRANCH"
+  echo "Would publish $PACKAGE_NAME@$simulated_version directly to npm"
   echo "✅ DRY RUN complete"
 }
 
@@ -231,6 +245,26 @@ prepare_release_version() {
   }
 }
 
+publish_package() {
+  local published_version
+  published_version=$(npm view "$PACKAGE_NAME@$LATEST_VERSION" version 2>/dev/null || true)
+
+  if [ "$published_version" = "$LATEST_VERSION" ]; then
+    echo "✅ $PACKAGE_NAME@$LATEST_VERSION is already published on npm; skipping."
+    return
+  fi
+
+  print_separator
+  print_process "npm-publish:public"
+  echo "🚀 Publishing $PACKAGE_NAME@$LATEST_VERSION to the npm registry..."
+  if ! npm publish --access public; then
+    echo "❌ npm publish failed. Resolve npm authentication or registry issues, then run './deploy.sh --continue'."
+    save_state "publish_package"
+    exit 1
+  fi
+  print_status_done
+}
+
 publish_release_version() {
   # Check npm package health before actual publish
   print_separator
@@ -281,11 +315,7 @@ publish_release_version() {
     exit 1
   }
 
-  print_separator
-  print_process "npm-publish:public"
-  echo "🚀 Publishing v$LATEST_VERSION to the npm registry..."
-  npm publish --access public
-  print_status_done
+  publish_package
 }
 
 cleanup_release_version() {
@@ -411,6 +441,15 @@ if [ "$CONTINUE_DEPLOY" = true ]; then
     publish_release_version)
       print_process "publishing:release-version"
       publish_release_version
+      print_status_done
+      print_separator
+      print_process "cleaning:release-version"
+      cleanup_release_version
+      print_status_done
+      ;;
+    publish_package)
+      print_process "publishing:npm-package"
+      publish_package
       print_status_done
       print_separator
       print_process "cleaning:release-version"
