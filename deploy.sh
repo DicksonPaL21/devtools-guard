@@ -235,7 +235,8 @@ publish_release_version() {
   # Check npm package health before actual publish
   print_separator
   print_process "checking:package-health"
-  check_package_health && print_status_done || print_status_failed
+  check_package_health
+  print_status_done
 
   # Compose commit messages for release note
   MERGE_COMMIT_MESSAGES=$(git log "$TARGET_BRANCH".."release/v$LATEST_VERSION" \
@@ -269,14 +270,22 @@ publish_release_version() {
 
   git checkout "$DEVELOP_BRANCH"
   git pull --rebase origin "$DEVELOP_BRANCH"
-  git rebase "$TARGET_BRANCH"
-  git push --force-with-lease origin "$DEVELOP_BRANCH" || {
+  git merge --ff-only "release/v$LATEST_VERSION" || {
+    echo "❌ Could not fast-forward $DEVELOP_BRANCH to release/v$LATEST_VERSION. Resolve the branch state, then run './deploy.sh --continue'."
+    save_state "publish_release_version"
+    exit 1
+  }
+  git push origin "$DEVELOP_BRANCH" || {
     echo "❌ Failed to push $DEVELOP_BRANCH. Resolve the issue, then run './deploy.sh --continue'."
     save_state "publish_release_version"
     exit 1
   }
 
-  echo "✅ Tag v$LATEST_VERSION pushed. GitHub Actions will publish the package to npm."
+  print_separator
+  print_process "npm-publish:public"
+  echo "🚀 Publishing v$LATEST_VERSION to the npm registry..."
+  npm publish --access public
+  print_status_done
 }
 
 cleanup_release_version() {
@@ -371,7 +380,7 @@ print_status_failed() {
 
 print_release_version() {
   echo -e "New \033[36m$DEPLOYMENT_TYPE\033[0m version \033[32mv$LATEST_VERSION\033[0m has been released."
-  echo -e "\n✅ CI/CD will handle the actual NPM publish based on the new tag."
+  echo -e "\n✅ v$LATEST_VERSION was published directly to npm."
 }
 
 # --------------- Entry Point ----------------
@@ -388,20 +397,25 @@ if [ "$CONTINUE_DEPLOY" = true ]; then
   case "$STEP" in
     prepare_release_version)
       print_process "preparing:release-version"
-      prepare_release_version "$VERSION_TYPE" && print_status_done || print_status_failed
+      prepare_release_version "$VERSION_TYPE"
+      print_status_done
       print_separator
       print_process "publishing:release-version"
-      publish_release_version && print_status_done || print_status_failed
+      publish_release_version
+      print_status_done
       print_separator
       print_process "cleaning:release-version"
-      cleanup_release_version && print_status_done || print_status_failed
+      cleanup_release_version
+      print_status_done
       ;;
     publish_release_version)
       print_process "publishing:release-version"
-      publish_release_version && print_status_done || print_status_failed
+      publish_release_version
+      print_status_done
       print_separator
       print_process "cleaning:release-version"
-      cleanup_release_version && print_status_done || print_status_failed
+      cleanup_release_version
+      print_status_done
       ;;
     *)
       echo "❌ Unknown or invalid step in $STATE_FILE."
@@ -426,7 +440,8 @@ fi
 if [[ "$MODE" == "normal" || "$MODE" == "preflight" ]]; then
   print_separator
   print_process "checking:preflight"
-  run_preflight_checks && print_status_done || print_status_failed
+  run_preflight_checks
+  print_status_done
 fi
 
 if [ "$MODE" == "preflight" ]; then exit 0; fi
@@ -434,14 +449,16 @@ if [ "$MODE" == "preflight" ]; then exit 0; fi
 if [[ "$MODE" == "normal" || "$MODE" == "dry-run" ]]; then
   print_separator
   print_process "dry-run:preview"
-  run_dry_run && print_status_done || print_status_failed
+  run_dry_run
+  print_status_done
 fi
 
 if [ "$MODE" == "dry-run" ]; then exit 0; fi
 
 print_separator
 print_process "validating:input"
-validate_input && print_status_done || print_status_failed
+validate_input
+print_status_done
 
 # Detect local uncommitted changes; prompt to stash or abort for safety
 if ! git diff --quiet || ! git diff --cached --quiet; then
@@ -460,19 +477,23 @@ fi
 
 print_separator
 print_process "syncing:repository"
-sync_repository && print_status_done || print_status_failed
+sync_repository
+print_status_done
 
 print_separator
 print_process "preparing:release-version"
-prepare_release_version "$VERSION_TYPE" && print_status_done || print_status_failed
+prepare_release_version "$VERSION_TYPE"
+print_status_done
 
 print_separator
 print_process "publishing:release-version"
-publish_release_version && print_status_done || print_status_failed
+publish_release_version
+print_status_done
 
 print_separator
 print_process "cleaning:release-version"
-cleanup_release_version && print_status_done || print_status_failed
+cleanup_release_version
+print_status_done
 
 print_separator
 print_release_version
